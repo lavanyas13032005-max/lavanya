@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Welcome to FoodDelight - Your premier destination for exquisite culinary experiences">
+    <title>FoodDelight - Premium Food & Restaurant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1>🍽️ FoodDelight</h1>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#featured" class="nav-link">Featured</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2 class="hero-title">Taste the Flavor of Life</h2>
+            <p class="hero-subtitle">Experience extraordinary culinary delights crafted with passion</p>
+            <button class="cta-button" onclick="document.getElementById('featured').scrollIntoView({ behavior: 'smooth' })">
+                Explore Our Menu
+            </button>
+        </div>
+    </section>
+
+    <!-- Featured Food Items Section -->
+    <section id="featured" class="featured">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Featured Delicacies</h2>
+                <p>Handpicked selections from our premium menu</p>
+            </div>
+
+            <div class="food-grid">
+                <!-- Food Item 1 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🍕</div>
+                        <span class="badge">Popular</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Classic Margherita Pizza</h3>
+                        <p class="description">Authentic Italian pizza with fresh mozzarella, basil, and tomato sauce</p>
+                        <div class="food-footer">
+                            <span class="price">$12.99</span>
+                            <button class="add-btn" onclick="addToCart('Classic Margherita Pizza', 12.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Food Item 2 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🍔</div>
+                        <span class="badge">Bestseller</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Gourmet Burger Deluxe</h3>
+                        <p class="description">Premium beef patty with aged cheddar, truffle aioli, and crispy bacon</p>
+                        <div class="food-footer">
+                            <span class="price">$14.99</span>
+                            <button class="add-btn" onclick="addToCart('Gourmet Burger Deluxe', 14.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Food Item 3 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🍜</div>
+                        <span class="badge">Spicy</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Spicy Ramen Bowl</h3>
+                        <p class="description">Traditional Japanese ramen with fiery chili broth and tender noodles</p>
+                        <div class="food-footer">
+                            <span class="price">$11.99</span>
+                            <button class="add-btn" onclick="addToCart('Spicy Ramen Bowl', 11.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Food Item 4 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🥗</div>
+                        <span class="badge">Healthy</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Quinoa Power Salad</h3>
+                        <p class="description">Nutritious blend of organic vegetables, quinoa, and homemade vinaigrette</p>
+                        <div class="food-footer">
+                            <span class="price">$9.99</span>
+                            <button class="add-btn" onclick="addToCart('Quinoa Power Salad', 9.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Food Item 5 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🍣</div>
+                        <span class="badge">Premium</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Sushi Platter Supreme</h3>
+                        <p class="description">Assorted premium sushi rolls with fresh fish and wasabi</p>
+                        <div class="food-footer">
+                            <span class="price">$18.99</span>
+                            <button class="add-btn" onclick="addToCart('Sushi Platter Supreme', 18.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Food Item 6 -->
+                <article class="food-card">
+                    <div class="food-image">
+                        <div class="image-placeholder">🍰</div>
+                        <span class="badge">Dessert</span>
+                    </div>
+                    <div class="food-content">
+                        <h3>Chocolate Lava Cake</h3>
+                        <p class="description">Decadent chocolate cake with molten center and vanilla ice cream</p>
+                        <div class="food-footer">
+                            <span class="price">$7.99</span>
+                            <button class="add-btn" onclick="addToCart('Chocolate Lava Cake', 7.99)">+ Add</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>About FoodDelight</h2>
+                    <p>Welcome to FoodDelight, where culinary excellence meets warm hospitality. Since 2015, we've been dedicated to bringing the finest flavors from around the world to your table.</p>
+                    <p>Our team of award-winning chefs sources only the freshest, highest-quality ingredients to create memorable dining experiences. Every dish is crafted with passion, precision, and a commitment to excellence.</p>
+                    <div class="about-features">
+                        <div class="feature">
+                            <h4>🏆 Award Winning</h4>
+                            <p>Recognized for culinary excellence</p>
+                        </div>
+                        <div class="feature">
+                            <h4>🌱 Farm Fresh</h4>
+                            <p>Locally sourced ingredients</p>
+                        </div>
+                        <div class="feature">
+                            <h4>👨‍🍳 Expert Chefs</h4>
+                            <p>Passionate culinary professionals</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="about-image-placeholder">🍽️</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get In Touch</h2>
+                <p>We'd love to hear from you. Send us a message!</p>
+            </div>
+
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <div class="info-item">
+                        <h4>📍 Location</h4>
+                        <p>123 Culinary Street<br>Food City, FC 12345</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>📞 Phone</h4>
+                        <p>+1 (555) 123-4567</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>✉️ Email</h4>
+                        <p>hello@fooddelight.com</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>🕐 Hours</h4>
+                        <p>Mon - Fri: 11am - 10pm<br>Sat - Sun: 10am - 11pm</p>
+                    </div>
+                </div>
+
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                        <span class="error-message" id="nameError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" required>
+                        <span class="error-message" id="subjectError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                        <span class="error-message" id="messageError"></span>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Send Message</button>
+                    <span class="success-message" id="successMessage"></span>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FoodDelight</h4>
+                    <p>Experience extraordinary culinary excellence</p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#featured">Menu</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">f</a>
+                        <a href="#" aria-label="Twitter">𝕏</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">in</a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <div class="newsletter">
+                        <input type="email" placeholder="Your email" aria-label="Newsletter email">
+                        <button>Subscribe</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 FoodDelight. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Notification -->
+    <div class="cart-notification" id="cartNotification">
+        <span id="notificationText"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
