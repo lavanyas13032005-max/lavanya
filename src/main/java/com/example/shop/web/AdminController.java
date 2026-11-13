@@ -17,6 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+    static final int LOW_STOCK = 5;
+    static final int MAX_STOCK = 1_000_000;
+
     private final ProductRepository products;
     private final OrderService orders;
 
@@ -25,10 +28,39 @@ public class AdminController {
         this.orders = orders;
     }
 
+    @GetMapping
+    public String dashboard(Model model) {
+        model.addAttribute("productCount", products.count());
+        model.addAttribute("outOfStock", products.countByStock(0));
+        model.addAttribute("lowStock", products.countByStockBetween(1, LOW_STOCK));
+        model.addAttribute("inventoryValue", products.inventoryValue());
+        model.addAttribute("placedOrders", orders.countByStatus(OrderStatus.PLACED));
+        model.addAttribute("attention", products.adminSearch(null, LOW_STOCK));
+        model.addAttribute("lowStockLimit", LOW_STOCK);
+        return "admin/dashboard";
+    }
+
     @GetMapping("/products")
-    public String list(Model model) {
-        model.addAttribute("products", products.findAll());
+    public String list(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(defaultValue = "false") boolean lowOnly, Model model) {
+        model.addAttribute("products", products.adminSearch(q.isBlank() ? null : q.trim(), lowOnly ? LOW_STOCK : null));
+        model.addAttribute("q", q);
+        model.addAttribute("lowOnly", lowOnly);
+        model.addAttribute("lowStockLimit", LOW_STOCK);
         return "admin/products";
+    }
+
+    @PostMapping("/products/{id}/stock")
+    public String updateStock(@PathVariable Long id, @RequestParam int stock, RedirectAttributes flash) {
+        Product p = products.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (stock < 0 || stock > MAX_STOCK) {
+            flash.addFlashAttribute("error", "Stock must be between 0 and " + MAX_STOCK + ".");
+        } else {
+            p.setStock(stock);
+            products.save(p);
+            flash.addFlashAttribute("message", "Stock for " + p.getName() + " set to " + stock + ".");
+        }
+        return "redirect:/admin/products";
     }
 
     @GetMapping("/products/new")
@@ -45,8 +77,13 @@ public class AdminController {
     }
 
     @PostMapping("/products")
-    public String save(@Valid @ModelAttribute("product") Product form, BindingResult result) {
+    public String save(@Valid @ModelAttribute("product") Product form, BindingResult result,
+                       RedirectAttributes flash) {
         if (result.hasErrors()) return "admin/product-form";
+        if (form.getStock() > MAX_STOCK) {
+            result.rejectValue("stock", "max", "Stock must be at most " + MAX_STOCK);
+            return "admin/product-form";
+        }
         Product target = form;
         if (form.getId() != null) {
             target = products.findById(form.getId())
@@ -59,6 +96,7 @@ public class AdminController {
             target.setImageUrl(form.getImageUrl());
         }
         products.save(target);
+        flash.addFlashAttribute("message", "Saved " + target.getName() + ".");
         return "redirect:/admin/products";
     }
 

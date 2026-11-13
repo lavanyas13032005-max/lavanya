@@ -17,4 +17,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select distinct p.category from Product p where p.category is not null and p.category <> '' order by p.category")
     List<String> findCategories();
+
+    long countByStock(int stock);
+
+    long countByStockBetween(int from, int to);
+
+    @Query("select coalesce(sum(p.price * p.stock), 0) from Product p")
+    java.math.BigDecimal inventoryValue();
+
+    @Query("select p from Product p where (:q is null or lower(p.name) like lower(concat('%', :q, '%')) "
+            + "or lower(coalesce(p.category,'')) like lower(concat('%', :q, '%'))) "
+            + "and (:maxStock is null or p.stock <= :maxStock) order by p.stock asc, p.name asc")
+    List<Product> adminSearch(@Param("q") String q, @Param("maxStock") Integer maxStock);
 }

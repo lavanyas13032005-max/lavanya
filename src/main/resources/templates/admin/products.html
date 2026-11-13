@@ -1,17 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Manage products')}"></head>
+<head th:replace="~{fragments/layout :: head('Manage inventory')}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main>
-  <h1>Products</h1>
-  <div class="alert" th:if="${error}" th:text="${error}"></div>
-  <p><a class="btn" th:href="@{/admin/products/new}">New product</a></p>
-  <table>
+  <h1>Inventory</h1>
+  <p th:if="${message}" class="success" role="status" th:text="${message}"></p>
+  <p th:if="${error}" class="error" role="alert" th:text="${error}"></p>
+  <form th:action="@{/admin/products}" method="get" style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+    <input type="search" name="q" th:value="${q}" placeholder="Search name or category" aria-label="Search">
+    <label style="white-space:nowrap"><input type="checkbox" name="lowOnly" value="true" th:checked="${lowOnly}" style="width:auto">
+      Low stock only</label>
+    <button type="submit">Filter</button>
+    <a class="btn" th:href="@{/admin/products/new}" style="white-space:nowrap">Add product</a>
+  </form>
+  <p th:if="${products.empty}">No products match.</p>
+  <table th:unless="${products.empty}">
     <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+    <tbody>
     <tr th:each="p : ${products}">
-      <td th:text="${p.name}"></td><td th:text="${p.category}"></td>
-      <td th:text="${p.price}"></td><td th:text="${p.stock}"></td>
+      <td th:text="${p.name}"></td>
+      <td th:text="${p.category}"></td>
+      <td th:text="${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}"></td>
+      <td>
+        <form th:action="@{/admin/products/{id}/stock(id=${p.id})}" method="post" class="inline">
+          <input type="number" name="stock" th:value="${p.stock}" min="0" max="1000000" aria-label="Stock" style="width:90px">
+          <button type="submit">Save</button>
+        </form>
+        <span th:if="${p.stock == 0}" class="error">Out of stock</span>
+        <span th:if="${p.stock > 0 and p.stock <= lowStockLimit}" class="error">Low</span>
+      </td>
       <td>
         <a th:href="@{/admin/products/{id}/edit(id=${p.id})}">Edit</a>
         <form th:action="@{/admin/products/{id}/delete(id=${p.id})}" method="post" class="inline">
@@ -19,6 +37,7 @@
         </form>
       </td>
     </tr>
+    </tbody>
   </table>
 </main>
 </body>

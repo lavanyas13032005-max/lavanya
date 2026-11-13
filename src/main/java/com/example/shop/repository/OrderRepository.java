@@ -15,4 +15,6 @@ public interface OrderRepository extends JpaRepository<CustomerOrder, Long> {
 
     @EntityGraph(attributePaths = {"items", "user"})
     Optional<CustomerOrder> findWithItemsById(Long id);
+
+    long countByStatus(com.example.shop.model.OrderStatus status);
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Admin dashboard</h1>
+  <div class="stats">
+    <div class="card"><span class="muted">Products</span><div class="stat" th:text="${productCount}"></div></div>
+    <div class="card"><span class="muted">Out of stock</span><div class="stat" th:classappend="${outOfStock > 0} ? 'error'" th:text="${outOfStock}"></div></div>
+    <div class="card"><span class="muted" th:text="'Low stock (1 to ' + ${lowStockLimit} + ')'"></span><div class="stat" th:text="${lowStock}"></div></div>
+    <div class="card"><span class="muted">Inventory value</span><div class="stat" th:text="${#numbers.formatDecimal(inventoryValue,1,'COMMA',2,'POINT')}"></div></div>
+    <div class="card"><span class="muted">Orders to ship</span><div class="stat" th:text="${placedOrders}"></div></div>
+  </div>
+  <p><a class="btn" th:href="@{/admin/products/new}">Add product</a>
+     <a class="btn" th:href="@{/admin/products}">Manage inventory</a>
+     <a class="btn" th:href="@{/admin/orders}">View orders</a></p>
+  <h2>Needs attention</h2>
+  <p th:if="${attention.empty}">All products are well stocked.</p>
+  <table th:unless="${attention.empty}">
+    <thead><tr><th>Product</th><th>Stock</th><th></th></tr></thead>
+    <tbody>
+      <tr th:each="p : ${attention}">
+        <td th:text="${p.name}"></td>
+        <td><span th:if="${p.stock == 0}" class="error">Out of stock</span><span th:if="${p.stock > 0}" th:text="${p.stock}"></span></td>
+        <td><a th:href="@{/admin/products/{id}/edit(id=${p.id})}">Edit</a></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

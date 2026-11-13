@@ -71,6 +71,9 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public long countByStatus(OrderStatus status) { return orders.countByStatus(status); }
+
+    @Transactional(readOnly = true)
     public List<CustomerOrder> all() { return orders.findAllByOrderByCreatedAtDesc(); }
 
     @Transactional(readOnly = true)

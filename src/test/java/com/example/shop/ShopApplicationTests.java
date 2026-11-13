@@ -197,4 +197,43 @@ class ShopApplicationTests {
         mvc.perform(post("/login").with(csrf()).param("username", "login@example.com").param("password", "wrong"))
                 .andExpect(redirectedUrl("/login?error"));
     }
+
+    @Test
+    void dashboardIsAdminOnlyAndShowsStockAlerts() throws Exception {
+        mvc.perform(get("/admin").with(user("c@example.com").roles("USER"))).andExpect(status().isForbidden());
+        Product p = product(0);
+        p.setName("Zero Widget");
+        products.save(p);
+        mvc.perform(get("/admin").with(user("a").roles("ADMIN"))).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Admin dashboard")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Zero Widget")));
+    }
+
+    @Test
+    void adminCanUpdateStockAndInvalidValueIsRejected() throws Exception {
+        Product p = product(3);
+        var admin = user("a").roles("ADMIN");
+        mvc.perform(post("/admin/products/" + p.getId() + "/stock").with(admin).with(csrf()).param("stock", "42"))
+                .andExpect(flash().attributeExists("message"));
+        assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(42);
+        mvc.perform(post("/admin/products/" + p.getId() + "/stock").with(admin).with(csrf()).param("stock", "-1"))
+                .andExpect(flash().attributeExists("error"));
+        assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(42);
+        mvc.perform(post("/admin/products/" + p.getId() + "/stock").with(user("c@example.com").roles("USER")).with(csrf())
+                .param("stock", "1")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminCanAddProductAndLowStockFilterWorks() throws Exception {
+        var admin = user("a").roles("ADMIN");
+        mvc.perform(post("/admin/products").with(admin).with(csrf())
+                .param("name", "Brand New Gadget").param("price", "9.99").param("stock", "2").param("category", "Tech"))
+                .andExpect(redirectedUrl("/admin/products"));
+        mvc.perform(get("/admin/products").with(admin).param("lowOnly", "true"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Brand New Gadget")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Wireless Headphones"))));
+        mvc.perform(post("/admin/products").with(admin).with(csrf())
+                .param("name", "Too Many").param("price", "1.00").param("stock", "2000000"))
+                .andExpect(status().isOk()).andExpect(view().name("admin/product-form"));
+    }
 }

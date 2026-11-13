@@ -13,7 +13,8 @@
     <span class="spacer"></span>
     <a th:href="@{/cart}">Cart<span th:if="${cartCount != null and cartCount > 0}" th:text="' (' + ${cartCount} + ')'"></span></a>
     <a sec:authorize="isAuthenticated()" th:href="@{/orders}">My orders</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products}">Products</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Dashboard</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products}">Inventory</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/orders}">All orders</a>
     <a sec:authorize="!isAuthenticated()" th:href="@{/login}">Log in</a>
     <a sec:authorize="!isAuthenticated()" th:href="@{/register}">Register</a>
