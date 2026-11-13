@@ -31,6 +31,7 @@ public class CartController {
         cart.getLines().keySet().removeIf(id -> lines.stream().noneMatch(l -> l.product().getId().equals(id)));
         model.addAttribute("lines", lines);
         model.addAttribute("total", orders.total(lines));
+        model.addAttribute("hasStockProblem", lines.stream().anyMatch(CartLine::isExceedsStock));
         model.addAttribute("itemCount", cart.getItemCount());
         return "cart";
     }

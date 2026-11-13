@@ -143,4 +143,21 @@ class ShopApplicationTests {
         mvc.perform(get("/cart").session(session))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Your cart is empty")));
     }
+
+    @Test
+    void cartWarnsWhenStockDropsBelowQuantity() throws Exception {
+        Product p = product(5);
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "4"));
+        p.setStock(2);
+        products.saveAndFlush(p);
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Only 2 in stock")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("/checkout"))));
+        p.setStock(0);
+        products.saveAndFlush(p);
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Out of stock. Remove")));
+    }
 }
