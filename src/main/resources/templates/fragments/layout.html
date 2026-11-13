@@ -11,7 +11,7 @@
   <nav class="nav">
     <a class="brand" th:href="@{/}">Shop</a>
     <span class="spacer"></span>
-    <a th:href="@{/cart}">Cart</a>
+    <a th:href="@{/cart}">Cart<span th:if="${cartCount != null and cartCount > 0}" th:text="' (' + ${cartCount} + ')'"></span></a>
     <a sec:authorize="isAuthenticated()" th:href="@{/orders}">My orders</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products}">Products</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/orders}">All orders</a>

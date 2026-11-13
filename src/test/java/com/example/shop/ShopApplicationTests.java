@@ -112,4 +112,35 @@ class ShopApplicationTests {
         assertThatThrownBy(() -> orders.checkout("c@example.com", cart, "addr"))
                 .isInstanceOf(OutOfStockException.class);
     }
+
+    @Test
+    void cartAddUpdateAndTotal() throws Exception {
+        Product p = product(5);
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "2"))
+                .andExpect(redirectedUrl("/cart"));
+        mvc.perform(get("/cart").session(session)).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Total (2 items)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("20.00")));
+        mvc.perform(post("/cart/update").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "3"));
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("30.00")));
+    }
+
+    @Test
+    void cartQuantityIsCappedAtStockAndZeroRemoves() throws Exception {
+        Product p = product(2);
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "9"))
+                .andExpect(flash().attributeExists("error"));
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Total (2 items)")));
+        mvc.perform(post("/cart/update").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "0"));
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Your cart is empty")));
+    }
 }

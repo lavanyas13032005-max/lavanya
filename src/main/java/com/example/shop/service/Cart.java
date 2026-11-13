@@ -24,6 +24,8 @@ public class Cart implements Serializable {
         else lines.put(productId, Math.min(MAX_PER_ITEM, qty));
     }
 
+    public int getItemCount() { return lines.values().stream().mapToInt(Integer::intValue).sum(); }
+
     public void remove(Long productId) { lines.remove(productId); }
     public void clear() { lines.clear(); }
     public boolean isEmpty() { return lines.isEmpty(); }

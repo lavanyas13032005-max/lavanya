@@ -29,3 +29,4 @@ label { display:block; margin:12px 0 4px; font-weight:600; }
 .chips a:hover { border-color:var(--accent); }
 .chips a.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 .product-card img, .product-img { display:block; width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; margin-bottom:8px; background:#e6e9ef; }
+.success { color:#1a7f37; }
