@@ -84,7 +84,7 @@ class ShopApplicationTests {
     @Test
     void registrationRejectsShortPassword() throws Exception {
         mvc.perform(post("/register").with(csrf())
-                .param("name", "N").param("email", "n@example.com").param("password", "short"))
+                .param("name", "N").param("email", "n@example.com").param("password", "short").param("confirmPassword", "short"))
                 .andExpect(status().isOk()).andExpect(view().name("register"));
     }
 
@@ -159,5 +159,42 @@ class ShopApplicationTests {
         products.saveAndFlush(p);
         mvc.perform(get("/cart").session(session))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Out of stock. Remove")));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions register(String name, String email, String pw, String confirm) throws Exception {
+        return mvc.perform(post("/register").with(csrf()).param("name", name).param("email", email)
+                .param("password", pw).param("confirmPassword", confirm));
+    }
+
+    @Test
+    void registrationValidatesFields() throws Exception {
+        register("", "not-an-email", "password1", "password1")
+                .andExpect(view().name("register"))
+                .andExpect(model().attributeHasFieldErrors("form", "name", "email"));
+        register("N", "n@example.com", "onlyletters", "onlyletters")
+                .andExpect(model().attributeHasFieldErrors("form", "password"));
+        register("N", "n@example.com", "password1", "password2")
+                .andExpect(model().attributeHasFieldErrors("form", "confirmPassword"));
+    }
+
+    @Test
+    void registrationCreatesAccountAndRejectsDuplicateEmail() throws Exception {
+        register("New User", "New@Example.com", "password1", "password1")
+                .andExpect(redirectedUrl("/login?registered"));
+        assertThat(users.findByEmailIgnoreCase("new@example.com")).isPresent();
+        assertThat(users.findByEmailIgnoreCase("new@example.com").get().getPasswordHash()).startsWith("$2");
+        register("Other", "NEW@example.com", "password1", "password1")
+                .andExpect(view().name("register"))
+                .andExpect(model().attributeHasFieldErrors("form", "email"));
+    }
+
+    @Test
+    void loginPageRendersAndRegisteredUserCanLogIn() throws Exception {
+        mvc.perform(get("/login")).andExpect(status().isOk()).andExpect(view().name("login"));
+        register("Log In", "login@example.com", "password1", "password1");
+        mvc.perform(post("/login").with(csrf()).param("username", "login@example.com").param("password", "password1"))
+                .andExpect(redirectedUrl("/"));
+        mvc.perform(post("/login").with(csrf()).param("username", "login@example.com").param("password", "wrong"))
+                .andExpect(redirectedUrl("/login?error"));
     }
 }

@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .requestMatchers("/checkout/**", "/orders/**").authenticated()
                 .anyRequest().permitAll())
             .formLogin(f -> f.loginPage("/login").permitAll())
-            .logout(l -> l.logoutSuccessUrl("/"));
+            .logout(l -> l.logoutSuccessUrl("/login?logout"));
         return http.build();
     }
 
