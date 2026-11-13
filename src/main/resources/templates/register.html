@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Create account</h1>
+  <form th:action="@{/register}" th:object="${form}" method="post" class="form" novalidate>
+    <label for="name">Name</label>
+    <input id="name" th:field="*{name}" required maxlength="80" autocomplete="name" autofocus
+           th:attr="aria-invalid=${#fields.hasErrors('name')}">
+    <div class="error" th:errors="*{name}" role="alert"></div>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" th:field="*{email}" required maxlength="160" autocomplete="email"
+           th:attr="aria-invalid=${#fields.hasErrors('email')}">
+    <div class="error" th:errors="*{email}" role="alert"></div>
+
+    <label for="password">Password (8 to 72 characters, with a letter and a digit)</label>
+    <input id="password" type="password" th:field="*{password}" required minlength="8" maxlength="72"
+           autocomplete="new-password" th:attr="aria-invalid=${#fields.hasErrors('password')}">
+    <div class="error" th:errors="*{password}" role="alert"></div>
+
+    <label for="confirmPassword">Confirm password</label>
+    <input id="confirmPassword" type="password" th:field="*{confirmPassword}" required maxlength="72"
+           autocomplete="new-password" th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')}">
+    <div class="error" th:errors="*{confirmPassword}" role="alert"></div>
+
+    <p><button type="submit">Register</button></p>
+    <p class="muted">Already have an account? <a th:href="@{/login}">Log in</a></p>
+  </form>
+</main>
+</body>
+</html>

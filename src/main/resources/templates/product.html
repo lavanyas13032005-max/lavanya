@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${product.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <div class="card">
+    <img class="product-img" th:src="${product.imageUrl != null} ? ${product.imageUrl} : @{/images/placeholder.svg}"
+         th:alt="${product.name}" style="max-width:320px" referrerpolicy="no-referrer">
+    <span class="muted" th:text="${product.category}"></span>
+    <h1 th:text="${product.name}"></h1>
+    <p th:text="${product.description}"></p>
+    <p class="price" th:text="${#numbers.formatDecimal(product.price,1,'COMMA',2,'POINT')}"></p>
+    <p th:text="${product.stock} + ' in stock'" class="muted"></p>
+    <form th:if="${product.stock > 0}" th:action="@{/cart/add}" method="post" style="max-width:200px">
+      <input type="hidden" name="productId" th:value="${product.id}">
+      <label for="qty">Quantity</label>
+      <input id="qty" type="number" name="quantity" value="1" min="1" th:max="${product.stock}">
+      <p><button type="submit">Add to cart</button></p>
+    </form>
+    <p th:if="${product.stock == 0}" class="error">Out of stock</p>
+  </div>
+</main>
+</body>
+</html>

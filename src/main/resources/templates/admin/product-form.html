@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Product')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Product</h1>
+  <form th:action="@{/admin/products}" th:object="${product}" method="post" class="form">
+    <input type="hidden" th:field="*{id}">
+    <label for="name">Name</label><input id="name" th:field="*{name}">
+    <div class="error" th:errors="*{name}"></div>
+    <label for="category">Category</label><input id="category" th:field="*{category}">
+    <div class="error" th:errors="*{category}"></div>
+    <label for="imageUrl">Image URL (optional, http or https)</label><input id="imageUrl" th:field="*{imageUrl}">
+    <div class="error" th:errors="*{imageUrl}"></div>
+    <label for="description">Description</label><textarea id="description" rows="4" th:field="*{description}"></textarea>
+    <div class="error" th:errors="*{description}"></div>
+    <label for="price">Price</label><input id="price" th:field="*{price}">
+    <div class="error" th:errors="*{price}"></div>
+    <label for="stock">Stock</label><input id="stock" type="number" th:field="*{stock}">
+    <div class="error" th:errors="*{stock}"></div>
+    <p><button type="submit">Save</button> <a th:href="@{/admin/products}">Cancel</a></p>
+  </form>
+</main>
+</body>
+</html>

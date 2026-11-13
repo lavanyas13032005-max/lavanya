@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My orders')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>My orders</h1>
+  <p th:if="${orders.empty}">You have no orders yet.</p>
+  <table th:unless="${orders.empty}">
+    <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+    <tr th:each="o : ${orders}">
+      <td><a th:href="@{/orders/{id}(id=${o.id})}" th:text="'#' + ${o.id}"></a></td>
+      <td th:text="${o.createdAt}"></td><td th:text="${o.status}"></td><td th:text="${o.total}"></td>
+    </tr>
+  </table>
+</main>
+</body>
+</html>

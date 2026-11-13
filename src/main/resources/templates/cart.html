@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cart')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Your cart</h1>
+  <p th:if="${message}" class="success" role="status" th:text="${message}"></p>
+  <p th:if="${error}" class="error" role="alert" th:text="${error}"></p>
+  <p th:if="${hasStockProblem}" class="error" role="alert">
+    Some items are no longer available in the quantity you chose. Update or remove them before checking out.</p>
+  <p th:if="${lines.empty}">Your cart is empty. <a th:href="@{/}">Keep shopping</a></p>
+  <table th:unless="${lines.empty}">
+    <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead>
+    <tbody>
+      <tr th:each="l : ${lines}">
+        <td>
+          <a th:href="@{/products/{id}(id=${l.product.id})}" th:text="${l.product.name}"></a>
+          <div th:if="${l.outOfStock}" class="error" role="alert">Out of stock. Remove this item to continue.</div>
+          <div th:if="${l.exceedsStock and !l.outOfStock}" class="error" role="alert"
+               th:text="'Only ' + ${l.product.stock} + ' in stock. Reduce the quantity to continue.'"></div>
+        </td>
+        <td th:text="${#numbers.formatDecimal(l.product.price,1,'COMMA',2,'POINT')}"></td>
+        <td>
+          <form th:action="@{/cart/update}" method="post" class="inline">
+            <input type="hidden" name="productId" th:value="${l.product.id}">
+            <input type="number" name="quantity" th:value="${l.quantity}" min="0" th:max="${l.product.stock}" aria-label="Quantity">
+            <button type="submit">Update</button>
+          </form>
+        </td>
+        <td th:text="${#numbers.formatDecimal(l.lineTotal,1,'COMMA',2,'POINT')}"></td>
+        <td>
+          <form th:action="@{/cart/remove}" method="post" class="inline">
+            <input type="hidden" name="productId" th:value="${l.product.id}">
+            <button type="submit" class="danger">Remove</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot><tr>
+      <th colspan="3" th:text="'Total (' + ${itemCount} + (${itemCount == 1} ? ' item)' : ' items)')"></th>
+      <th colspan="2" th:text="${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}"></th>
+    </tr></tfoot>
+  </table>
+  <p th:unless="${lines.empty or hasStockProblem}"><a class="btn" th:href="@{/checkout}">Checkout</a></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Checkout')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Checkout</h1>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <p class="error" role="alert" th:if="${hasStockProblem}">
+    Some items exceed available stock. <a th:href="@{/cart}">Review your cart</a> before placing the order.</p>
+  <div class="checkout">
+    <form th:action="@{/checkout}" th:object="${form}" method="post" class="form" novalidate>
+      <h2>Shipping details</h2>
+      <label for="fullName">Full name</label>
+      <input id="fullName" th:field="*{fullName}" autocomplete="name" th:attrappend="aria-invalid=${#fields.hasErrors('fullName')} ? 'true'">
+      <div class="error" th:errors="*{fullName}"></div>
+      <label for="addressLine">Street address</label>
+      <input id="addressLine" th:field="*{addressLine}" autocomplete="address-line1" th:attrappend="aria-invalid=${#fields.hasErrors('addressLine')} ? 'true'">
+      <div class="error" th:errors="*{addressLine}"></div>
+      <label for="city">City</label>
+      <input id="city" th:field="*{city}" autocomplete="address-level2" th:attrappend="aria-invalid=${#fields.hasErrors('city')} ? 'true'">
+      <div class="error" th:errors="*{city}"></div>
+      <label for="postalCode">Postal code</label>
+      <input id="postalCode" th:field="*{postalCode}" autocomplete="postal-code" th:attrappend="aria-invalid=${#fields.hasErrors('postalCode')} ? 'true'">
+      <div class="error" th:errors="*{postalCode}"></div>
+      <label for="country">Country</label>
+      <input id="country" th:field="*{country}" autocomplete="country-name" th:attrappend="aria-invalid=${#fields.hasErrors('country')} ? 'true'">
+      <div class="error" th:errors="*{country}"></div>
+      <label for="phone">Phone (optional)</label>
+      <input id="phone" type="tel" th:field="*{phone}" autocomplete="tel" th:attrappend="aria-invalid=${#fields.hasErrors('phone')} ? 'true'">
+      <div class="error" th:errors="*{phone}"></div>
+      <h2>Payment</h2>
+      <p class="muted">Demo store: payments are simulated and no real charge is made. Use 4242 4242 4242 4242
+        with any future expiry and any 3-digit code. 4000 0000 0000 0002 is declined.</p>
+      <label for="cardHolder">Name on card</label>
+      <input id="cardHolder" name="holderName" th:value="${card.holderName}" autocomplete="cc-name" th:attrappend="aria-invalid=${#fields.hasErrors('${card.holderName}')} ? 'true'">
+      <div class="error" th:errors="${card.holderName}"></div>
+      <label for="cardNumber">Card number</label>
+      <input id="cardNumber" name="number" inputmode="numeric" autocomplete="cc-number" maxlength="23" th:attrappend="aria-invalid=${#fields.hasErrors('${card.number}')} ? 'true'">
+      <div class="error" th:errors="${card.number}"></div>
+      <div class="row2">
+        <div>
+          <label for="cardExpiry">Expiry (MM/YY)</label>
+          <input id="cardExpiry" name="expiry" th:value="${card.expiry}" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5" th:attrappend="aria-invalid=${#fields.hasErrors('${card.expiry}')} ? 'true'">
+          <div class="error" th:errors="${card.expiry}"></div>
+        </div>
+        <div>
+          <label for="cardCvc">Security code</label>
+          <input id="cardCvc" name="cvc" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" th:attrappend="aria-invalid=${#fields.hasErrors('${card.cvc}')} ? 'true'">
+          <div class="error" th:errors="${card.cvc}"></div>
+        </div>
+      </div>
+      <button type="submit" th:disabled="${hasStockProblem}" th:text="'Pay ' + ${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">Pay</button>
+    </form>
+    <aside class="card summary" aria-label="Order summary">
+      <h2>Order summary</h2>
+      <table>
+        <tr th:each="l : ${lines}">
+          <td th:text="${l.product.name} + ' x ' + ${l.quantity}"></td>
+          <td th:text="${#numbers.formatDecimal(l.lineTotal,1,'COMMA',2,'POINT')}"></td>
+        </tr>
+        <tr><th th:text="'Total (' + ${itemCount} + (${itemCount == 1} ? ' item)' : ' items)')"></th>
+            <th th:text="${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}"></th></tr>
+      </table>
+      <p><a th:href="@{/cart}">Edit cart</a></p>
+    </aside>
+  </div>
+</main>
+</body>
+</html>
