@@ -36,3 +36,4 @@ label { display:block; margin:12px 0 4px; font-weight:600; }
 @media (max-width:720px) { .checkout { grid-template-columns:1fr; } }
 .address { white-space:pre-line; }
 @media print { .nav, .no-print, .ok { display:none; } body { background:#fff; } }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }

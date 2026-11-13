@@ -34,7 +34,7 @@ public class AdminController {
         model.addAttribute("outOfStock", products.countByStock(0));
         model.addAttribute("lowStock", products.countByStockBetween(1, LOW_STOCK));
         model.addAttribute("inventoryValue", products.inventoryValue());
-        model.addAttribute("placedOrders", orders.countByStatus(OrderStatus.PLACED));
+        model.addAttribute("placedOrders", orders.countByStatus(OrderStatus.PAID));
         model.addAttribute("attention", products.adminSearch(null, LOW_STOCK));
         model.addAttribute("lowStockLimit", LOW_STOCK);
         return "admin/dashboard";

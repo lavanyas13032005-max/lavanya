@@ -1,3 +1,4 @@
 package com.example.shop.model;
 
-public enum OrderStatus { PLACED, SHIPPED, DELIVERED, CANCELLED }
+/** PLACED = created but unpaid. PAID = payment captured, ready to ship. */
+public enum OrderStatus { PLACED, PAID, SHIPPED, DELIVERED, CANCELLED }

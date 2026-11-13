@@ -29,6 +29,8 @@ class ShopApplicationTests {
     @Autowired UserRepository users;
     @Autowired OrderService orders;
 
+    private static final CardDetails CARD = new CardDetails("4242424242424242", "Ada", 12, 2099, "123");
+
     private Product product(int stock) {
         Product p = new Product();
         p.setName("Test");
@@ -94,7 +96,7 @@ class ShopApplicationTests {
         customer();
         Cart cart = new Cart();
         cart.add(p.getId(), 3);
-        CustomerOrder o = orders.checkout("c@example.com", cart, "1 Main St");
+        CustomerOrder o = orders.checkout("c@example.com", cart, "1 Main St", CARD);
         assertThat(products.findById(p.getId()).get().getStock()).isEqualTo(2);
         assertThat(o.getTotal()).isEqualByComparingTo("30.00");
         assertThat(cart.isEmpty()).isTrue();
@@ -109,7 +111,7 @@ class ShopApplicationTests {
         customer();
         Cart cart = new Cart();
         cart.add(p.getId(), 2);
-        assertThatThrownBy(() -> orders.checkout("c@example.com", cart, "addr"))
+        assertThatThrownBy(() -> orders.checkout("c@example.com", cart, "addr", CARD))
                 .isInstanceOf(OutOfStockException.class);
     }
 
@@ -239,9 +241,17 @@ class ShopApplicationTests {
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder shipping(
             org.springframework.mock.web.MockHttpSession session, String postal) {
+        return shipping(session, postal, "4242 4242 4242 4242", "12/99", "123");
+    }
+
+    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder shipping(
+            org.springframework.mock.web.MockHttpSession session, String postal,
+            String number, String expiry, String cvc) {
         return post("/checkout").session(session).with(user("c@example.com").roles("USER")).with(csrf())
                 .param("fullName", "Ada Lovelace").param("addressLine", "1 Main St")
-                .param("city", "London").param("postalCode", postal).param("country", "UK");
+                .param("city", "London").param("postalCode", postal).param("country", "UK")
+                .param("holderName", "Ada Lovelace").param("number", number)
+                .param("expiry", expiry).param("cvc", cvc);
     }
 
     @Test
@@ -279,5 +289,69 @@ class ShopApplicationTests {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("SW1A 1AA London")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("20.00")));
         org.assertj.core.api.Assertions.assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(3);
+    }
+
+    @Test
+    void successfulPaymentMarksOrderPaidAndReceiptShowsMaskedCard() throws Exception {
+        Product p = product(5);
+        customer();
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "1"));
+        var res = mvc.perform(shipping(session, "SW1A 1AA")).andExpect(status().is3xxRedirection()).andReturn();
+        String body = mvc.perform(get(res.getResponse().getRedirectedUrl()).session(session)
+                        .with(user("c@example.com").roles("USER")))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(body).contains("Payment successful").contains("PAID").contains("Visa ending in 4242")
+                .contains("MOCK-").doesNotContain("4242 4242 4242 4242").doesNotContain("4242424242424242");
+        CustomerOrder o = orders.forUser("c@example.com").get(0);
+        assertThat(o.getStatus()).isEqualTo(OrderStatus.PAID);
+        assertThat(o.getCardLast4()).isEqualTo("4242");
+        assertThat(o.getPaidAt()).isNotNull();
+    }
+
+    @Test
+    void declinedCardCreatesNoOrderAndKeepsStockAndCart() throws Exception {
+        Product p = product(5);
+        customer();
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "2"));
+        mvc.perform(shipping(session, "SW1A 1AA", "4000000000000002", "12/99", "123"))
+                .andExpect(status().isOk()).andExpect(view().name("checkout"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Your card was declined.")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("4000000000000002"))));
+        assertThat(orders.forUser("c@example.com")).isEmpty();
+        assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(5);
+        mvc.perform(get("/cart").session(session))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Total (2 items)")));
+    }
+
+    @Test
+    void invalidCardDetailsAreRejectedBeforeCharging() throws Exception {
+        Product p = product(5);
+        customer();
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "1"));
+        mvc.perform(shipping(session, "SW1A 1AA", "4242424242424241", "12/99", "123"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Enter a valid card number")));
+        mvc.perform(shipping(session, "SW1A 1AA", "4242424242424242", "01/20", "123"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("This card has expired")));
+        mvc.perform(shipping(session, "SW1A 1AA", "4242424242424242", "12/99", "12"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Enter the 3 or 4 digit code")));
+        mvc.perform(shipping(session, "SW1A 1AA", "4242424242424242", "13/30", "123"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Use MM/YY")));
+        assertThat(orders.forUser("c@example.com")).isEmpty();
+    }
+
+    @Test
+    void mockGatewayDeclinesOnlyTheDocumentedTestCards() {
+        var gw = new MockPaymentGateway();
+        var amt = new java.math.BigDecimal("10.00");
+        assertThat(gw.charge(CARD, amt).approved()).isTrue();
+        assertThat(gw.charge(new CardDetails("4000000000000002", "A", 1, 2099, "123"), amt).approved()).isFalse();
+        assertThat(gw.charge(new CardDetails("4000000000009995", "A", 1, 2099, "123"), amt).message())
+                .contains("insufficient funds");
     }
 }

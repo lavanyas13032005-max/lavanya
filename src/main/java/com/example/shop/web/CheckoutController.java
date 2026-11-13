@@ -4,7 +4,9 @@ import com.example.shop.model.CustomerOrder;
 import com.example.shop.service.Cart;
 import com.example.shop.service.OrderService;
 import com.example.shop.service.OutOfStockException;
+import com.example.shop.service.CardForm;
 import com.example.shop.service.CartLine;
+import com.example.shop.service.PaymentDeclinedException;
 import com.example.shop.service.ShippingForm;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -27,7 +29,7 @@ public class CheckoutController {
     }
 
     @GetMapping("/checkout")
-    public String form(@ModelAttribute("form") ShippingForm form, Model model) {
+    public String form(@ModelAttribute("form") ShippingForm form, @ModelAttribute("card") CardForm card, Model model) {
         if (cart.isEmpty()) return "redirect:/cart";
         addSummary(model, orders.resolve(cart));
         return "checkout";
@@ -35,14 +37,21 @@ public class CheckoutController {
 
     @PostMapping("/checkout")
     public String place(@Valid @ModelAttribute("form") ShippingForm form, BindingResult result,
+                        @Valid @ModelAttribute("card") CardForm card, BindingResult cardResult,
                         Principal principal, Model model) {
         if (cart.isEmpty()) return "redirect:/cart";
         var lines = orders.resolve(cart);
-        if (result.hasErrors()) return redisplay(model, lines);
+        if (!cardResult.hasFieldErrors("number") && !card.hasValidChecksum()) {
+            cardResult.rejectValue("number", "checksum", "Enter a valid card number");
+        }
+        if (!cardResult.hasFieldErrors("expiry") && card.isExpired()) {
+            cardResult.rejectValue("expiry", "expired", "This card has expired");
+        }
+        if (result.hasErrors() || cardResult.hasErrors()) return redisplay(model, lines);
         try {
-            CustomerOrder o = orders.checkout(principal.getName(), cart, form.toAddressText());
+            CustomerOrder o = orders.checkout(principal.getName(), cart, form.toAddressText(), card.toDetails());
             return "redirect:/orders/" + o.getId() + "?placed";
-        } catch (OutOfStockException e) {
+        } catch (OutOfStockException | PaymentDeclinedException e) {
             model.addAttribute("error", e.getMessage());
             return redisplay(model, lines);
         }

@@ -14,8 +14,11 @@ public class OrderService {
     private final OrderRepository orders;
     private final ProductRepository products;
     private final UserRepository users;
+    private final PaymentGateway gateway;
 
-    public OrderService(OrderRepository orders, ProductRepository products, UserRepository users) {
+    public OrderService(OrderRepository orders, ProductRepository products, UserRepository users,
+                        PaymentGateway gateway) {
+        this.gateway = gateway;
         this.orders = orders;
         this.products = products;
         this.users = users;
@@ -34,32 +37,42 @@ public class OrderService {
         return lines.stream().map(CartLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /** Creates an order from the cart and decrements stock, all or nothing. */
+    /**
+     * Checks stock, charges the card, then creates a PAID order and decrements stock, all or nothing.
+     * A declined card throws before anything is changed, so the cart and stock are untouched.
+     */
     @Transactional
-    public CustomerOrder checkout(String email, Cart cart, String address) {
+    public CustomerOrder checkout(String email, Cart cart, String address, CardDetails card) {
         if (cart.isEmpty()) throw new IllegalStateException("Cart is empty");
         UserAccount user = users.findByEmailIgnoreCase(email).orElseThrow();
         CustomerOrder order = new CustomerOrder();
         order.setUser(user);
         order.setShippingAddress(address);
         BigDecimal total = BigDecimal.ZERO;
+        List<Product> locked = new ArrayList<>();
         for (Map.Entry<Long, Integer> e : cart.getLines().entrySet()) {
-            Product p = products.findById(e.getKey())
+            Product p = products.findForUpdateById(e.getKey())
                     .orElseThrow(() -> new OutOfStockException("A product in your cart is no longer available"));
             int qty = e.getValue();
             if (p.getStock() < qty) {
                 throw new OutOfStockException("Only " + p.getStock() + " left of " + p.getName());
             }
-            p.setStock(p.getStock() - qty);
             OrderItem item = new OrderItem();
             item.setProduct(p);
             item.setProductName(p.getName());
             item.setQuantity(qty);
             item.setUnitPrice(p.getPrice());
             order.getItems().add(item);
+            locked.add(p);
             total = total.add(item.getLineTotal());
         }
         order.setTotal(total);
+
+        PaymentResult payment = gateway.charge(card, total);
+        if (!payment.approved()) throw new PaymentDeclinedException(payment.message());
+
+        for (OrderItem i : order.getItems()) i.getProduct().setStock(i.getProduct().getStock() - i.getQuantity());
+        order.markPaid(payment.reference(), card.brand(), card.last4());
         CustomerOrder saved = orders.save(order);
         cart.clear();
         return saved;
@@ -79,7 +92,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public CustomerOrder get(Long id) { return orders.findWithItemsById(id).orElseThrow(); }
 
-    /** Cancelling restores stock. Only PLACED orders can be cancelled. */
+    /** Cancelling restores stock. Cancelling a PAID order does not refund the card in this mock setup. */
     @Transactional
     public void updateStatus(Long id, OrderStatus status) {
         CustomerOrder o = orders.findWithItemsById(id).orElseThrow();

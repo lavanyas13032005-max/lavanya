@@ -9,6 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    /** Locks the row so stock cannot change between the check and the payment. */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id = :id")
+    java.util.Optional<Product> findForUpdateById(@Param("id") Long id);
+
     /** Filters by optional category (exact, case-insensitive) and optional search text. */
     @Query("select p from Product p where (:category is null or lower(p.category) = lower(:category)) "
             + "and (:q is null or lower(p.name) like lower(concat('%', :q, '%')) "
