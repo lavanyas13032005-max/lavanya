@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('All orders')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>All orders</h1>
+  <div class="alert" th:if="${error}" th:text="${error}"></div>
+  <table>
+    <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+    <tr th:each="o : ${orders}">
+      <td th:text="'#' + ${o.id}"></td>
+      <td th:text="${o.user.email}"></td>
+      <td th:text="${o.items.size()}"></td>
+      <td th:text="${o.total}"></td>
+      <td>
+        <form th:action="@{/admin/orders/{id}/status(id=${o.id})}" method="post" class="inline">
+          <select name="status" aria-label="Status" style="width:auto">
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == o.status}"></option>
+          </select>
+          <button type="submit">Set</button>
+        </form>
+      </td>
+    </tr>
+  </table>
+</main>
+</body>
+</html>

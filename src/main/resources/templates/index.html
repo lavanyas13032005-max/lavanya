@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Products')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <form th:action="@{/}" method="get" class="inline" style="display:flex;gap:8px;margin-bottom:16px">
+    <input type="search" name="q" th:value="${q}" placeholder="Search products or categories" aria-label="Search">
+    <button type="submit">Search</button>
+  </form>
+  <p th:if="${page.empty}">No products found.</p>
+  <div class="grid">
+    <div class="card" th:each="p : ${page.content}">
+      <span class="muted" th:text="${p.category}"></span>
+      <h3><a th:href="@{/products/{id}(id=${p.id})}" th:text="${p.name}"></a></h3>
+      <p class="price" th:text="${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}"></p>
+      <p th:if="${p.stock == 0}" class="error">Out of stock</p>
+      <form th:if="${p.stock > 0}" th:action="@{/cart/add}" method="post">
+        <input type="hidden" name="productId" th:value="${p.id}">
+        <button type="submit">Add to cart</button>
+      </form>
+    </div>
+  </div>
+  <div class="pager">
+    <a th:if="${page.hasPrevious()}" th:href="@{/(q=${q},page=${page.number - 1})}">&laquo; Previous</a>
+    <span class="muted" th:text="'Page ' + ${page.number + 1} + ' of ' + ${page.totalPages == 0 ? 1 : page.totalPages}"></span>
+    <a th:if="${page.hasNext()}" th:href="@{/(q=${q},page=${page.number + 1})}">Next &raquo;</a>
+  </div>
+</main>
+</body>
+</html>

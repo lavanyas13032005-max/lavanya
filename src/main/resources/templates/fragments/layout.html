@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' | Shop'">Shop</title>
+  <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<header th:fragment="header">
+  <nav class="nav">
+    <a class="brand" th:href="@{/}">Shop</a>
+    <span class="spacer"></span>
+    <a th:href="@{/cart}">Cart</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/orders}">My orders</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products}">Products</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/orders}">All orders</a>
+    <a sec:authorize="!isAuthenticated()" th:href="@{/login}">Log in</a>
+    <a sec:authorize="!isAuthenticated()" th:href="@{/register}">Register</a>
+    <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="inline">
+      <button class="link" type="submit">Log out (<span sec:authentication="name"></span>)</button>
+    </form>
+  </nav>
+</header>
+</body>
+</html>

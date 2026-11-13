@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Order')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <div class="ok" th:if="${param.placed}">Thank you! Your order has been placed.</div>
+  <h1 th:text="'Order #' + ${order.id}"></h1>
+  <p>Status: <strong th:text="${order.status}"></strong></p>
+  <p>Ship to: <span th:text="${order.shippingAddress}"></span></p>
+  <table>
+    <thead><tr><th>Product</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tr th:each="i : ${order.items}">
+      <td th:text="${i.productName}"></td><td th:text="${i.quantity}"></td>
+      <td th:text="${i.unitPrice}"></td><td th:text="${i.lineTotal}"></td>
+    </tr>
+    <tr><th colspan="3">Total</th><th th:text="${order.total}"></th></tr>
+  </table>
+</main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Manage products')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main>
+  <h1>Products</h1>
+  <div class="alert" th:if="${error}" th:text="${error}"></div>
+  <p><a class="btn" th:href="@{/admin/products/new}">New product</a></p>
+  <table>
+    <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+    <tr th:each="p : ${products}">
+      <td th:text="${p.name}"></td><td th:text="${p.category}"></td>
+      <td th:text="${p.price}"></td><td th:text="${p.stock}"></td>
+      <td>
+        <a th:href="@{/admin/products/{id}/edit(id=${p.id})}">Edit</a>
+        <form th:action="@{/admin/products/{id}/delete(id=${p.id})}" method="post" class="inline">
+          <button type="submit" class="danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+  </table>
+</main>
+</body>
+</html>
