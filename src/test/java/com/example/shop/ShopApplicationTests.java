@@ -52,6 +52,29 @@ class ShopApplicationTests {
     }
 
     @Test
+    void categoryFilterShowsOnlyMatchingProducts() throws Exception {
+        mvc.perform(get("/").param("category", "Books")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Clean Code")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Wireless Headphones"))));
+    }
+
+    @Test
+    void catalogShowsCategoryChipsAndPlaceholderImage() throws Exception {
+        mvc.perform(get("/")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(">Kitchen</a>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/placeholder.svg")));
+    }
+
+    @Test
+    void productImageUrlMustBeHttp() throws Exception {
+        mvc.perform(post("/admin/products").with(user("a").roles("ADMIN")).with(csrf())
+                        .param("name", "X").param("price", "5.00").param("stock", "1")
+                        .param("imageUrl", "javascript:alert(1)"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("must be an http(s) URL")));
+    }
+
+    @Test
     void adminAreaRequiresAdminRole() throws Exception {
         mvc.perform(get("/admin/products")).andExpect(status().is3xxRedirection());
         mvc.perform(get("/admin/products").with(user("c@example.com").roles("USER"))).andExpect(status().isForbidden());

@@ -5,6 +5,8 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main>
   <div class="card">
+    <img class="product-img" th:src="${product.imageUrl != null} ? ${product.imageUrl} : @{/images/placeholder.svg}"
+         th:alt="${product.name}" style="max-width:320px" referrerpolicy="no-referrer">
     <span class="muted" th:text="${product.category}"></span>
     <h1 th:text="${product.name}"></h1>
     <p th:text="${product.description}"></p>

@@ -19,11 +19,15 @@ public class ShopController {
 
     @GetMapping("/")
     public String home(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(defaultValue = "") String category,
                        @RequestParam(defaultValue = "0") int page, Model model) {
         var pageable = PageRequest.of(Math.max(page, 0), 8, Sort.by("name"));
-        var result = q.isBlank() ? products.findAll(pageable) : products.search(q.trim(), pageable);
+        var result = products.search(q.isBlank() ? null : q.trim(),
+                category.isBlank() ? null : category.trim(), pageable);
         model.addAttribute("page", result);
         model.addAttribute("q", q);
+        model.addAttribute("category", category.trim());
+        model.addAttribute("categories", products.findCategories());
         return "index";
     }
 

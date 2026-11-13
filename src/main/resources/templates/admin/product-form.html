@@ -11,6 +11,8 @@
     <div class="error" th:errors="*{name}"></div>
     <label for="category">Category</label><input id="category" th:field="*{category}">
     <div class="error" th:errors="*{category}"></div>
+    <label for="imageUrl">Image URL (optional, http or https)</label><input id="imageUrl" th:field="*{imageUrl}">
+    <div class="error" th:errors="*{imageUrl}"></div>
     <label for="description">Description</label><textarea id="description" rows="4" th:field="*{description}"></textarea>
     <div class="error" th:errors="*{description}"></div>
     <label for="price">Price</label><input id="price" th:field="*{price}">

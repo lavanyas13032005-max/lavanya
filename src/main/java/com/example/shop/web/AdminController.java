@@ -56,6 +56,7 @@ public class AdminController {
             target.setPrice(form.getPrice());
             target.setStock(form.getStock());
             target.setCategory(form.getCategory());
+            target.setImageUrl(form.getImageUrl());
         }
         products.save(target);
         return "redirect:/admin/products";

@@ -26,6 +26,10 @@ public class Product {
     @Size(max = 60)
     private String category;
 
+    @Size(max = 500) @Pattern(regexp = "^(https?://\\S+)?$", message = "must be an http(s) URL")
+    @Column(length = 500)
+    private String imageUrl;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -36,6 +40,8 @@ public class Product {
     public void setPrice(BigDecimal price) { this.price = price; }
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = (imageUrl == null || imageUrl.isBlank()) ? null : imageUrl.trim(); }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
 }
