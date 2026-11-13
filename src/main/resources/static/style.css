@@ -32,3 +32,7 @@ label { display:block; margin:12px 0 4px; font-weight:600; }
 .success { color:#1a7f37; }
 .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:16px; }
 .stat { font-size:1.8rem; font-weight:700; }
+.checkout { display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start; }
+@media (max-width:720px) { .checkout { grid-template-columns:1fr; } }
+.address { white-space:pre-line; }
+@media print { .nav, .no-print, .ok { display:none; } body { background:#fff; } }

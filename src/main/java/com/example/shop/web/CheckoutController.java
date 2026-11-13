@@ -4,10 +4,15 @@ import com.example.shop.model.CustomerOrder;
 import com.example.shop.service.Cart;
 import com.example.shop.service.OrderService;
 import com.example.shop.service.OutOfStockException;
+import com.example.shop.service.CartLine;
+import com.example.shop.service.ShippingForm;
+import jakarta.validation.Valid;
 import java.security.Principal;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,35 +27,37 @@ public class CheckoutController {
     }
 
     @GetMapping("/checkout")
-    public String form(Model model) {
+    public String form(@ModelAttribute("form") ShippingForm form, Model model) {
         if (cart.isEmpty()) return "redirect:/cart";
-        var lines = orders.resolve(cart);
-        model.addAttribute("lines", lines);
-        model.addAttribute("total", orders.total(lines));
+        addSummary(model, orders.resolve(cart));
         return "checkout";
     }
 
     @PostMapping("/checkout")
-    public String place(@RequestParam String address, Principal principal, Model model) {
-        String addr = address.trim();
+    public String place(@Valid @ModelAttribute("form") ShippingForm form, BindingResult result,
+                        Principal principal, Model model) {
         if (cart.isEmpty()) return "redirect:/cart";
         var lines = orders.resolve(cart);
-        if (addr.isEmpty() || addr.length() > 300) {
-            return fail(model, lines, "Please enter a shipping address (max 300 characters)");
-        }
+        if (result.hasErrors()) return redisplay(model, lines);
         try {
-            CustomerOrder o = orders.checkout(principal.getName(), cart, addr);
+            CustomerOrder o = orders.checkout(principal.getName(), cart, form.toAddressText());
             return "redirect:/orders/" + o.getId() + "?placed";
         } catch (OutOfStockException e) {
-            return fail(model, lines, e.getMessage());
+            model.addAttribute("error", e.getMessage());
+            return redisplay(model, lines);
         }
     }
 
-    private String fail(Model model, java.util.List<com.example.shop.service.CartLine> lines, String error) {
+    private String redisplay(Model model, List<CartLine> lines) {
+        addSummary(model, lines);
+        return "checkout";
+    }
+
+    private void addSummary(Model model, List<CartLine> lines) {
         model.addAttribute("lines", lines);
         model.addAttribute("total", orders.total(lines));
-        model.addAttribute("error", error);
-        return "checkout";
+        model.addAttribute("itemCount", cart.getItemCount());
+        model.addAttribute("hasStockProblem", lines.stream().anyMatch(CartLine::isExceedsStock));
     }
 
     @GetMapping("/orders")

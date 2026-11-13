@@ -236,4 +236,48 @@ class ShopApplicationTests {
                 .param("name", "Too Many").param("price", "1.00").param("stock", "2000000"))
                 .andExpect(status().isOk()).andExpect(view().name("admin/product-form"));
     }
+
+    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder shipping(
+            org.springframework.mock.web.MockHttpSession session, String postal) {
+        return post("/checkout").session(session).with(user("c@example.com").roles("USER")).with(csrf())
+                .param("fullName", "Ada Lovelace").param("addressLine", "1 Main St")
+                .param("city", "London").param("postalCode", postal).param("country", "UK");
+    }
+
+    @Test
+    void checkoutShowsSummaryAndRejectsInvalidShipping() throws Exception {
+        Product p = product(5);
+        customer();
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "2"));
+        mvc.perform(get("/checkout").session(session).with(user("c@example.com").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Order summary")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("20.00")));
+        mvc.perform(shipping(session, "!!"))
+                .andExpect(status().isOk()).andExpect(view().name("checkout"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Enter a valid postal code")));
+        mvc.perform(post("/checkout").session(session).with(user("c@example.com").roles("USER")).with(csrf()))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Full name is required")));
+        org.assertj.core.api.Assertions.assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(5);
+    }
+
+    @Test
+    void checkoutPlacesOrderAndReceiptShowsShippingDetails() throws Exception {
+        Product p = product(5);
+        customer();
+        var session = new org.springframework.mock.web.MockHttpSession();
+        mvc.perform(post("/cart/add").session(session).with(csrf())
+                .param("productId", p.getId().toString()).param("quantity", "2"));
+        var res = mvc.perform(shipping(session, "SW1A 1AA")).andExpect(status().is3xxRedirection()).andReturn();
+        String url = res.getResponse().getRedirectedUrl();
+        mvc.perform(get(url).session(session).with(user("c@example.com").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Order confirmed")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Ada Lovelace")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("SW1A 1AA London")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("20.00")));
+        org.assertj.core.api.Assertions.assertThat(products.findById(p.getId()).orElseThrow().getStock()).isEqualTo(3);
+    }
 }

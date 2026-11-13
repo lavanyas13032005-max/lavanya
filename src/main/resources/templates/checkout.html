@@ -5,17 +5,46 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main>
   <h1>Checkout</h1>
-  <div class="alert" th:if="${error}" th:text="${error}"></div>
-  <table>
-    <tr th:each="l : ${lines}"><td th:text="${l.product.name} + ' x ' + ${l.quantity}"></td><td th:text="${l.lineTotal}"></td></tr>
-    <tr><th>Total</th><th th:text="${total}"></th></tr>
-  </table>
-  <form th:action="@{/checkout}" method="post" class="form">
-    <label for="address">Shipping address</label>
-    <textarea id="address" name="address" rows="3" maxlength="300" required></textarea>
-    <p class="muted">Payment is simulated: no card details are collected.</p>
-    <button type="submit">Place order</button>
-  </form>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <p class="error" role="alert" th:if="${hasStockProblem}">
+    Some items exceed available stock. <a th:href="@{/cart}">Review your cart</a> before placing the order.</p>
+  <div class="checkout">
+    <form th:action="@{/checkout}" th:object="${form}" method="post" class="form" novalidate>
+      <h2>Shipping details</h2>
+      <label for="fullName">Full name</label>
+      <input id="fullName" th:field="*{fullName}" autocomplete="name" th:attrappend="aria-invalid=${#fields.hasErrors('fullName')} ? 'true'">
+      <div class="error" th:errors="*{fullName}"></div>
+      <label for="addressLine">Street address</label>
+      <input id="addressLine" th:field="*{addressLine}" autocomplete="address-line1" th:attrappend="aria-invalid=${#fields.hasErrors('addressLine')} ? 'true'">
+      <div class="error" th:errors="*{addressLine}"></div>
+      <label for="city">City</label>
+      <input id="city" th:field="*{city}" autocomplete="address-level2" th:attrappend="aria-invalid=${#fields.hasErrors('city')} ? 'true'">
+      <div class="error" th:errors="*{city}"></div>
+      <label for="postalCode">Postal code</label>
+      <input id="postalCode" th:field="*{postalCode}" autocomplete="postal-code" th:attrappend="aria-invalid=${#fields.hasErrors('postalCode')} ? 'true'">
+      <div class="error" th:errors="*{postalCode}"></div>
+      <label for="country">Country</label>
+      <input id="country" th:field="*{country}" autocomplete="country-name" th:attrappend="aria-invalid=${#fields.hasErrors('country')} ? 'true'">
+      <div class="error" th:errors="*{country}"></div>
+      <label for="phone">Phone (optional)</label>
+      <input id="phone" type="tel" th:field="*{phone}" autocomplete="tel" th:attrappend="aria-invalid=${#fields.hasErrors('phone')} ? 'true'">
+      <div class="error" th:errors="*{phone}"></div>
+      <p class="muted">Payment is simulated: no card details are collected.</p>
+      <button type="submit" th:disabled="${hasStockProblem}">Place order</button>
+    </form>
+    <aside class="card summary" aria-label="Order summary">
+      <h2>Order summary</h2>
+      <table>
+        <tr th:each="l : ${lines}">
+          <td th:text="${l.product.name} + ' x ' + ${l.quantity}"></td>
+          <td th:text="${#numbers.formatDecimal(l.lineTotal,1,'COMMA',2,'POINT')}"></td>
+        </tr>
+        <tr><th th:text="'Total (' + ${itemCount} + (${itemCount == 1} ? ' item)' : ' items)')"></th>
+            <th th:text="${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}"></th></tr>
+      </table>
+      <p><a th:href="@{/cart}">Edit cart</a></p>
+    </aside>
+  </div>
 </main>
 </body>
 </html>
