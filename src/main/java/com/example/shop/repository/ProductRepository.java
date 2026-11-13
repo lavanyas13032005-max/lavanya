@@ -14,9 +14,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select p from Product p where p.id = :id")
     java.util.Optional<Product> findForUpdateById(@Param("id") Long id);
 
-    /** Filters by optional category (exact, case-insensitive) and optional search text. */
-    @Query("select p from Product p where (:category is null or lower(p.category) = lower(:category)) "
-            + "and (:q is null or lower(p.name) like lower(concat('%', :q, '%')) "
+    /**
+     * Filters by category (exact, case-insensitive) and search text. Pass "" for "no filter".
+     * Null parameters are avoided on purpose: PostgreSQL cannot apply lower() to a null bound as bytea.
+     */
+    @Query("select p from Product p where (:category = '' or lower(p.category) = lower(:category)) "
+            + "and (:q = '' or lower(p.name) like lower(concat('%', :q, '%')) "
             + "or lower(coalesce(p.category,'')) like lower(concat('%', :q, '%')))")
     Page<Product> search(@Param("q") String q, @Param("category") String category, Pageable pageable);
 
@@ -30,8 +33,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select coalesce(sum(p.price * p.stock), 0) from Product p")
     java.math.BigDecimal inventoryValue();
 
-    @Query("select p from Product p where (:q is null or lower(p.name) like lower(concat('%', :q, '%')) "
+    /** Pass "" for no text filter and Integer.MAX_VALUE for no stock limit. */
+    @Query("select p from Product p where (:q = '' or lower(p.name) like lower(concat('%', :q, '%')) "
             + "or lower(coalesce(p.category,'')) like lower(concat('%', :q, '%'))) "
-            + "and (:maxStock is null or p.stock <= :maxStock) order by p.stock asc, p.name asc")
-    List<Product> adminSearch(@Param("q") String q, @Param("maxStock") Integer maxStock);
+            + "and p.stock <= :maxStock order by p.stock asc, p.name asc")
+    List<Product> adminSearch(@Param("q") String q, @Param("maxStock") int maxStock);
 }

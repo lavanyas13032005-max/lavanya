@@ -18,7 +18,17 @@ Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` to choose the admin login. If you leave t
 
 Run the tests with `mvn verify`.
 
+## Database
+
+By default the app uses an embedded H2 file database in `data/`. Products, orders and accounts survive restarts. No server is needed.
+
+To use PostgreSQL, start the app with the `postgres` profile and set the connection through environment variables:
+
+    DB_HOST=localhost DB_PORT=5432 DB_NAME=shop DB_USER=shop DB_PASSWORD=... \
+      java -jar target/shop-0.0.1-SNAPSHOT.jar --spring.profiles.active=postgres
+
+`DB_PASSWORD` is required and has no default. The schema is created automatically on first start.
+
 ## Notes
 
-- Data is stored in a local H2 file database under `data/`.
-- Payment is simulated. No card details are collected.
+- Payment is simulated.

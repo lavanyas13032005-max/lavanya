@@ -35,7 +35,7 @@ public class AdminController {
         model.addAttribute("lowStock", products.countByStockBetween(1, LOW_STOCK));
         model.addAttribute("inventoryValue", products.inventoryValue());
         model.addAttribute("placedOrders", orders.countByStatus(OrderStatus.PAID));
-        model.addAttribute("attention", products.adminSearch(null, LOW_STOCK));
+        model.addAttribute("attention", products.adminSearch("", LOW_STOCK));
         model.addAttribute("lowStockLimit", LOW_STOCK);
         return "admin/dashboard";
     }
@@ -43,7 +43,7 @@ public class AdminController {
     @GetMapping("/products")
     public String list(@RequestParam(defaultValue = "") String q,
                        @RequestParam(defaultValue = "false") boolean lowOnly, Model model) {
-        model.addAttribute("products", products.adminSearch(q.isBlank() ? null : q.trim(), lowOnly ? LOW_STOCK : null));
+        model.addAttribute("products", products.adminSearch(q.trim(), lowOnly ? LOW_STOCK : Integer.MAX_VALUE));
         model.addAttribute("q", q);
         model.addAttribute("lowOnly", lowOnly);
         model.addAttribute("lowStockLimit", LOW_STOCK);

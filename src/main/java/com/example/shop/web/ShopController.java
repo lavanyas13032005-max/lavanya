@@ -22,8 +22,7 @@ public class ShopController {
                        @RequestParam(defaultValue = "") String category,
                        @RequestParam(defaultValue = "0") int page, Model model) {
         var pageable = PageRequest.of(Math.max(page, 0), 8, Sort.by("name"));
-        var result = products.search(q.isBlank() ? null : q.trim(),
-                category.isBlank() ? null : category.trim(), pageable);
+        var result = products.search(q.trim(), category.trim(), pageable);
         model.addAttribute("page", result);
         model.addAttribute("q", q);
         model.addAttribute("category", category.trim());
