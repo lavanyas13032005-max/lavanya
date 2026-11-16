@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export interface TimerProps {
   initialSeconds?: number;
@@ -7,22 +7,18 @@ export interface TimerProps {
 export const Timer: React.FC<TimerProps> = ({ initialSeconds = 0 }) => {
   const [seconds, setSeconds] = useState<number>(initialSeconds);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (isRunning) {
-      timerRef.current = window.setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
-    } else if (timerRef.current !== null) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    if (!isRunning) {
+      return;
     }
 
+    const intervalId = window.setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+
     return () => {
-      if (timerRef.current !== null) {
-        clearInterval(timerRef.current);
-      }
+      clearInterval(intervalId);
     };
   }, [isRunning]);
 
